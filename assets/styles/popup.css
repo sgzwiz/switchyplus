@@ -121,10 +121,6 @@ hr {
     background: url(../images/loading.gif) !important;
 }
 
-#menu #automaticMode .icon {
-    background: url(../images/switch.png);
-}
-
 #menu .item span {
     -webkit-padding-start: 4px;
 }

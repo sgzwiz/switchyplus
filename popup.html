@@ -40,32 +40,11 @@ This work is based on:
         </div>
     </div>
     <div id="separatorRules" class="separator"></div>
-    <div id="automaticMode" class="item proxy"
-         title="Automatically choose the proper proxy profile &#13;for each URL, based on Switch Rules."
-         data-i18n-values="title:popup_autoSwitchMode_help">
-        <div class="icon"></div>
-        <span data-i18n-content="popup_autoSwitchMode">Auto Switch Mode</span>
-    </div>
     <div id="systemProxy" name="[System Proxy]" class="item proxy" title="Use System Proxy (need restart)"
          data-i18n-values="title:proxy_systemProxy_help">
         <div class="icon"></div>
         <span data-i18n-content="proxy_systemProxy">System Proxy</span>
     </div>
-    <div id="menuAddRule" class="item"
-         title="Quickly add a new Switch Rule &#13;for the current website."
-         data-i18n-values="title:popup_newRule_help">
-        <img src="assets/images/filter-add.png"/><span data-i18n-content="popup_newRule">New Rule</span>
-    </div>
-    <div class="item" id="divDomain" title="Add a temporary rule for the current domain."
-         data-i18n-values="title:popup_newTempRule_help">
-        <div class="icon"></div>
-        <span id="spanDomain"></span>
-    </div>
-    <div id="menuAddTempRule" class="item" title="The profile to be applied temporarily for the current domain."
-         style="display:none;" data-i18n-values="title:popup_newTempRule2_help">
-        <select id="cmbTempProfileId"></select>
-    </div>
-
     <div id="separatorOptions" class="separator"></div>
     <div id="menuOptions" class="item">
         <img src="assets/images/options.png"/><span data-i18n-content="popup_options">Options</span>
@@ -128,56 +107,5 @@ This work is based on:
     </div>
 </div>
 
-<div id="addRule">
-
-    <div class="header title" data-i18n-content="popup_newRule">New Rule</div>
-    <div class="header light">
-        <table>
-            <tr>
-                <th data-i18n-content="options_ruleName">Rule Name</th>
-                <td><input id="txtRuleName" type="text" value="Quick Rule"></td>
-            </tr>
-            <tr>
-                <th><strong data-i18n-content="options_urlPattern">URL Pattern</strong></th>
-                <td><input id="txtUrlPattern" type="text" class="ltr"></td>
-            </tr>
-            <tr class="note">
-                <th></th>
-                <td>
-                    <div class="invalid" data-i18n-content="popup_duplicateRules">* There is already a rule for this URL
-                        Pattern.
-                    </div>
-                </td>
-            </tr>
-            <tr>
-                <th data-i18n-content="options_patternType">Pattern Type</th>
-                <td><select id="cmbPatternType">
-                    <option value="wildcard" data-i18n-content="options_patternTypeWildcard">Wildcard</option>
-                    <option value="regexp" data-i18n-content="options_patternTypeRegExp">RegExp</option>
-                </select></td>
-            </tr>
-            <tr>
-                <th data-i18n-content="options_proxyProfile">Proxy Profile</th>
-                <td><select id="cmbProfileId"></select></td>
-            </tr>
-        </table>
-    </div>
-    <table class="control">
-        <tr>
-            <td width="100%"></td>
-            <td>
-                <button class="button bold" id="btnSave" data-i18n-content="popup_add">Add
-                </button>
-            </td>
-            <td>&nbsp;&nbsp;&nbsp;</td>
-            <td>
-                <button class="button" id="btnCancel" data-i18n-content="popup_cancel">Cancel
-                </button>
-            </td>
-        </tr>
-    </table>
-    <br/>
-    <br/>
-</div>
 </body>
 </html>
