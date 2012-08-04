@@ -36,13 +36,6 @@ function initUI() {
     $("#about").click(closePopup);
 
     $(".versionNumber").text(App.version);
-
-    // Reverse buttons order on Linux and Mac OS X
-    if (!Utils.OS.isWindows) {
-        var btnSaveContainer = $("#btnSave").parent();
-        btnSaveContainer.next().next().insertBefore(btnSaveContainer);
-        btnSaveContainer.next().insertBefore(btnSaveContainer);
-    }
 }
 
 function quickSwitchProxy() {
@@ -244,5 +237,4 @@ $(document).ready(function () {
     $("#openMainWebsite").click(openMainWebsite);
     $("#openPlusWebsite").click(openPlusWebsite);
     $("#openSupportWebsite").click(openSupportWebsite);
-    $("#btnCancel").click(closePopup);
 });
