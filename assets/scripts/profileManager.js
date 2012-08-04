@@ -22,6 +22,7 @@ var ProfileManager = {};
 
 ProfileManager.ProxyModes = {
     direct:"direct",
+    auto:"auto",
     manual:"manual",
     system:"system"
 };
@@ -338,8 +339,13 @@ ProfileManager.equals = function equals(profile1, profile2) {
         return (profile1.proxyHttps == profile2.proxyHttps
             && profile1.proxyFtp == profile2.proxyFtp
             && profile1.proxySocks == profile2.proxySocks
-            /*&& profile1.socksVersion == profile2.socksVersion*/);
+            && profile1.socksVersion == profile2.socksVersion
+            && profile1.proxyExceptions == profile2.proxyExceptions);
     }
+
+    if (profile1.proxyMode == ProfileManager.ProxyModes.auto)
+        return (profile1.proxyConfigUrl == profile2.proxyConfigUrl);
+
 };
 
 /**
