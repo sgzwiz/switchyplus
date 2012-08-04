@@ -26,30 +26,9 @@ var App = chrome.app.getDetails();
 var InitComplete = false;
 
 function init() {
-    if (RuleManager.isEnabled() && RuleManager.isRuleListEnabled()) {
-        ProxyPlugin.setProxyCallback = function () {
-            RuleManager.loadRuleListCallback = function () {
-                applySavedOptions();
-                InitComplete = true;
-            };
-            RuleManager.loadRuleList(true);
-        };
-    }
-    else {
-        ProxyPlugin.setProxyCallback = function () {
-            InitComplete = true;
-        };
-    }
-    //if(!Settings.getValue("reapplySelectedProfile", true)){
-    //var _init = function(){
-    //	checkFirstTime();
-    //	setIconInfo(undefined);
-    //	monitorTabChanges();
-    //};
-    //	ProxyPlugin.updateProxyCallback = _init;
-    //	ProxyPlugin.init();
-    //}
-
+    ProxyPlugin.setProxyCallback = function () {
+        InitComplete = true;
+    };
     ProxyPlugin.init();
     checkFirstTime();
     monitorTabChanges();
@@ -140,11 +119,6 @@ function setIconInfo(profile, preventProxyChanges) {
         }
     }
 
-    if (RuleManager.isAutomaticModeEnabled(profile)) {
-        setAutoSwitchIcon();
-        return;
-    }
-
     var title = "";
     if (profile.proxyMode == ProfileManager.ProxyModes.direct || profile.proxyMode == ProfileManager.ProxyModes.system) {
         chrome.browserAction.setIcon({ path:iconInactivePath });
@@ -158,48 +132,6 @@ function setIconInfo(profile, preventProxyChanges) {
     setIconTitle(title);
 }
 
-RuleManager.LastProfile = null;
-
-function setAutoSwitchIcon(url) {
-    if (!RuleManager.isAutomaticModeEnabled(undefined))
-        return false;
-
-    if (url == undefined) {
-        chrome.tabs.getSelected(undefined, function (tab) {
-            setAutoSwitchIcon(tab.url);
-        });
-        return true;
-    }
-
-    RuleManager.getProfileByUrl(url, function(profile){
-        RuleManager.LastProfile = profile;
-        var iconPath = iconDir + "icon-auto-" + (profile.color || "blue") + ".png";
-
-        chrome.browserAction.setIcon({ path:iconPath });
-
-
-        var title = I18n.getMessage("proxy_autoSwitchIconTitle", profile.name);
-
-        setIconTitle(title);
-    });
-    return true;
-}
-
-function monitorTabChanges() {
-    chrome.tabs.onSelectionChanged.addListener(function (tabId) {
-        chrome.tabs.get(tabId, function (tab) {
-            setAutoSwitchIcon(tab.url);
-        });
-    });
-    chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
-        if (changeInfo.status == "complete") {
-            chrome.tabs.getSelected(null, function (selectedTab) {
-                if (selectedTab.id == tab.id)
-                    setAutoSwitchIcon(tab.url);
-            });
-        }
-    });
-}
 $(document).ready(function(){
     init();
 });

@@ -21,7 +21,6 @@
  */
 var extension;
 //var ProfileManager;
-//var RuleManager;
 //var Settings;
 //var Logger;
 //var Utils;
@@ -29,13 +28,10 @@ var extension;
 var anyValueModified = false;
 var ignoreFieldsChanges = false;
 var selectedRow;
-var selectedRuleRow;
-var switchRulesEnabled;
 
 function init() {
     extension = chrome.extension.getBackgroundPage();
     ProfileManager = extension.ProfileManager;
-    RuleManager = extension.RuleManager;
     Settings = extension.Settings;
     Logger = extension.Logger;
     Utils = extension.Utils;
@@ -131,42 +127,6 @@ function initUI() {
         onFieldModified(true);
     });
 
-    // Switch Rules
-    $("#cmbDefaultRuleProfile").change(function () {
-        var rule = this.parentNode.parentNode.parentNode.rule;
-        rule.profileId = $("option:selected", this)[0].profile.id;
-        onFieldModified(false);
-    });
-
-    $("#chkSwitchRules").change(function () {
-//		RuleManager.setEnabled($(this).is(":checked"));
-        switchRulesEnabled = $(this).is(":checked");
-        if ($(this).is(":checked")) {
-            $("#switchRules *, #btnNewRule").removeClass("disabled");
-            $("#switchRules input, #switchRules select").removeAttr("disabled");
-            $("#chkRuleList").change();
-        } else {
-            $("#switchRules *, #btnNewRule").addClass("disabled");
-            $("#switchRules input, #switchRules select").attr("disabled", "disabled");
-        }
-        onFieldModified(false);
-    });
-
-    $("#chkRuleList").change(function () {
-        if ($(this).is(":checked")) {
-            $("#ruleListsTable *, #autoProxy").removeClass("disabled");
-            $("#ruleListsTable input, #ruleListsTable select, #autoProxy input").removeAttr("disabled");
-        } else {
-            $("#ruleListsTable *, #autoProxy").addClass("disabled");
-            $("#ruleListsTable input, #ruleListsTable select, #autoProxy input").attr("disabled", "disabled");
-        }
-        onFieldModified(false);
-    });
-
-    $("#txtRuleListUrl, #cmbRuleListProfile, #cmbRuleListReload, #chkAutoProxy").change(function () {
-        onFieldModified(false);
-    });
-
     // Network
     $("#chkMonitorProxyChanges").change(function () {
         if ($(this).is(":checked"))
@@ -228,7 +188,7 @@ function loadOptions() {
     var currentProfile = ProfileManager.getCurrentProfile();
     var lastSelectedProfile = selectedRow;
     selectedRow = undefined;
-    var i, profile, row, rule;
+    var i, profile, row;
     for (i in profiles) {
         if (profiles.hasOwnProperty(i)) {
             profile = profiles[i];
@@ -245,8 +205,7 @@ function loadOptions() {
     }
 
     if (currentProfile.unknown) {
-        if (!RuleManager.isAutomaticModeEnabled(currentProfile)
-            && currentProfile.proxyMode != ProfileManager.ProxyModes.direct) {
+        if (currentProfile.proxyMode != ProfileManager.ProxyModes.direct) {
             currentProfile.name = ProfileManager.currentProfileName;
             row = newRow(currentProfile);
         }
@@ -258,42 +217,6 @@ function loadOptions() {
 
     if (!selectedRow)
         $("#proxyProfiles .tableRow td:first").click();
-
-    // Switch Rules
-    RuleManager.loadRules();
-    var defaultRule = RuleManager.getDefaultRule();
-    $("#rulesTable .defaultRow")[0].rule = defaultRule;
-    switchRulesEnabled = RuleManager.isEnabled();
-    if (switchRulesEnabled)
-        $("#chkSwitchRules").attr("checked", "checked");
-
-    $("#chkSwitchRules").change();
-
-    $("#rulesTable .tableRow").remove();
-    var rules = RuleManager.getSortedRuleArray();
-    var rulesTemp = RuleManager.getRules();
-    selectedRuleRow = undefined;
-    for (i in rules) {
-        if (rules.hasOwnProperty(i)) {
-            rule = rules[i];
-            if (!rule.id || rule.id.length == 0) {
-                generateRuleId(rulesTemp, rule);
-                rulesTemp[rule.id] = rule;
-            }
-
-            row = newRuleRow(rule, false);
-        }
-    }
-
-    if (RuleManager.isRuleListEnabled())
-        $("#chkRuleList").attr("checked", "checked");
-
-    $("#chkRuleList").change();
-    $("#txtRuleListUrl").val(Settings.getValue("ruleListUrl", ""));
-    $("#cmbRuleListReload option[value='" + Settings.getValue("ruleListReload", 720) + "']").attr("selected", "selected");
-    var ruleListProfileId = Settings.getValue("ruleListProfileId", -1);
-    if (Settings.getValue("ruleListAutoProxy", false))
-        $("#chkAutoProxy").attr("checked", "checked");
 
     // Network
     if (Settings.getValue("monitorProxyChanges", true))
@@ -310,9 +233,8 @@ function loadOptions() {
 
     $("#chkQuickSwitch").change();
 
-    $("#cycleEnabled, #cycleDisabled, #cmbDefaultRuleProfile, #cmbRuleListProfile, #cmbStartupProfile").empty();
+    $("#cycleEnabled, #cycleDisabled, #cmbStartupProfile").empty();
     var directProfile = ProfileManager.directConnectionProfile;
-    var autoProfile = ProfileManager.autoSwitchProfile;
     var systemProfile = ProfileManager.systemProxyProfile;
     profiles.unshift(directProfile);
 
@@ -322,22 +244,10 @@ function loadOptions() {
         var ii = $("<option>").attr("value", profile.id).text(profile.name);
         var item = ii.clone();
         item[0].profile = profile;
-        if (defaultRule.profileId == profile.id)
-            item.attr("selected", "selected");
-
-        $("#cmbDefaultRuleProfile").append(item);
-
-        item = ii.clone();
-        item[0].profile = profile;
-        if (ruleListProfileId == profile.id)
-            item.attr("selected", "selected");
-
-        $("#cmbRuleListProfile").append(item);
 
         ps[profile.id] = profile;
     });
 
-    ps[autoProfile.id] = autoProfile;
     ps[systemProfile.id] = systemProfile;
 
     var startupProfileId = Settings.getValue("startupProfileId", "");
@@ -404,34 +314,8 @@ function updateListNow() {
             saveOptions();
         else
             return;
-    var result = RuleManager.loadRuleList(true);
-    if (result == null)
-        InfoTip.alertI18n("message_SwitchRulesDisabled");
-
     $("#updatingListIcon").css("visibility", "visible");
 
-    RuleManager.loadRuleListCallback = function (success) {
-        $("#updatingListIcon").css("visibility", "hidden");
-        if (!success) {
-            InfoTip.alertI18n("message_errorDownloadingRuleList");
-        }
-        else {
-            ProfileManager.applyProfile(RuleManager.getAutomaticModeProfile(), function () {
-                $("#lastListUpdate").text(Settings.getValue("lastListUpdate", new Date().toString()));
-                InfoTip.alertI18n("message_ruleListUpdated");
-            });
-        }
-    };
-}
-function apply2All() {
-    var id = $("#rulesTable .defaultRow")[0].rule.profileId;
-    if (!InfoTip.confirmI18n("message_apply2All", $("#rulesTable .defaultRow option[value=" + id + "]").text())) return;
-    var rs = $("#rulesTable .tableRow");
-    $("select[name=profileId]", rs).val(id);
-    rs.each(function (i, t) {
-        t.rule.profileId = id;
-    });
-    onFieldModified(true);
 }
 function saveOptions() {
     // Proxy Profiles
@@ -439,7 +323,7 @@ function saveOptions() {
     var oldProfiles = ProfileManager.getProfiles();
     var profiles = {};
     var rows = $("#proxyProfiles .tableRow");
-    var i, row, profile, rule;
+    var i, row, profile;
     for (i = 0; i < rows.length; i++) {
         row = rows[i];
         profile = row.profile;
@@ -472,42 +356,6 @@ function saveOptions() {
 
     ProfileManager.setProfiles(profiles);
     ProfileManager.save();
-
-    // Switch Rules
-    var oldRules = RuleManager.getRules();
-    var rules = {};
-    rows = $("#rulesTable .tableRow");
-    for (i = 0; i < rows.length; i++) {
-        row = rows[i];
-        rule = row.rule;
-
-        if (!rule.id || rule.id.length == 0) {
-            generateRuleId(oldRules, rule);
-            oldRules[rule.id] = rule;
-        }
-
-        rules[rule.id] = rule;
-    }
-    var defaultRule = $("#rulesTable .defaultRow")[0].rule;
-
-    RuleManager.setEnabled($("#chkSwitchRules").is(":checked"));
-    RuleManager.setRules(rules);
-    RuleManager.setDefaultRule(defaultRule);
-
-    var ruleListEnabled = $("#chkRuleList").is(":checked");
-    if (RuleManager.isEnabled() && (!RuleManager.isRuleListEnabled() && ruleListEnabled)) {
-        RuleManager.setRuleListEnabled(true);
-        RuleManager.loadRuleList(false);
-    }
-    RuleManager.setRuleListEnabled(ruleListEnabled);
-    Settings.setValue("ruleListUrl", $("#txtRuleListUrl").val());
-    Settings.setValue("ruleListReload", $("#cmbRuleListReload option:selected").val());
-    Settings.setValue("ruleListProfileId", $("#cmbRuleListProfile option:selected")[0].profile.id);
-    Settings.setValue("ruleListAutoProxy", $("#chkAutoProxy").is(":checked"));
-
-    RuleManager.save();
-    if (RuleManager.isAutomaticModeEnabled(currentProfile))
-        ProfileManager.applyProfile(RuleManager.getAutomaticModeProfile());
 
     // Network
     Settings.setValue("monitorProxyChanges", ($("#chkMonitorProxyChanges").is(":checked")));
@@ -543,10 +391,6 @@ function closeWindow() {
 function switchTab(tab) {
     var tabId;
     switch (tab) {
-        case "rules":
-            tabId = "tabRules";
-            break;
-
         case "network":
             tabId = "tabNetwork";
             break;
@@ -603,20 +447,6 @@ function generateProfileId(profiles, profile) {
         }
     }
     profile.id = profileId;
-}
-
-function generateRuleId(rules, rule) {
-    var ruleId = rule.name;
-    if (rules[ruleId] != undefined) {
-        for (var j = 2; ; j++) {
-            var newId = ruleId + j;
-            if (rules[newId] == undefined) {
-                ruleId = newId;
-                break;
-            }
-        }
-    }
-    rule.id = ruleId;
 }
 
 function newRow(profile) {
@@ -780,120 +610,6 @@ function enterFieldEditMode(cell) {
 //	input.select();
 }
 
-function exitFieldEditMode(cell) {
-    var input = $("input", cell);
-    var span = $("span", cell);
-    var newValue = input.val().replace(/(^\s*)|(\s*$)/g, "");
-    if (newValue == "")
-        newValue = "-"; // workaround for jQuery bug (toggling an empty span).
-
-    if (!anyValueModified)
-        anyValueModified = (span.text() != newValue);
-
-    var rule = cell.parentNode.parentNode.rule;
-    rule[input.attr("name")] = input.val();
-
-    span.text(newValue);
-    input.toggle();
-    span.toggle();
-}
-
-function newRuleRow(rule, activate) {
-    if (!rule && !switchRulesEnabled)
-        return;
-
-    var table = $("#rulesTable");
-    var row = $("#rulesTable .templateRow").clone();
-    row.removeClass("templateRow").addClass("tableRow");
-    table.append(row);
-
-    $("td", row).click(function () {
-        if (switchRulesEnabled)
-            enterFieldEditMode(this);
-    });
-    $("input", row).blur(function () {
-        exitFieldEditMode(this.parentNode);
-    }).keypress(function () {
-            if (event.keyCode == 13) // Enter Key
-                $(event.target).blur();
-        });
-    $("input, select", row).keydown(function () {
-        if (event.keyCode == 9) { // Tab Key
-            $(event.target).blur();
-            var nextFieldCell;
-            if (!event.shiftKey)
-                nextFieldCell = event.target.parentNode.parentNode.nextElementSibling;
-            else
-                nextFieldCell = event.target.parentNode.parentNode.previousElementSibling;
-
-            $(nextFieldCell).click();
-            $("input, select", nextFieldCell).focus().select();
-            return false;
-        }
-    });
-
-    var combobox = $("select[name='profileId']", row);
-    var profiles = ProfileManager.getSortedProfileArray();
-    var directProfile = ProfileManager.directConnectionProfile;
-    var item = $("<option>").attr("value", directProfile.id).text(directProfile.name);
-    item[0].profile = directProfile;
-    combobox.append(item);
-    $.each(profiles, function (key, profile) {
-        var item = $("<option>").attr("value", profile.id).text(profile.name);
-        item[0].profile = profile;
-        if (rule && rule.profileId == profile.id)
-            item.attr("selected", "selected");
-
-        combobox.append(item);
-    });
-    combobox.change(function () {
-        var rule = this.parentNode.parentNode.parentNode.rule;
-        rule.profileId = $("option:selected", this)[0].profile.id;
-        anyValueModified = true;
-    });
-
-    combobox = $("select[name='patternType']", row);
-    if (rule)
-        $("option[value='" + rule.patternType + "']", combobox).attr("selected", "selected");
-
-    combobox.change(function () {
-        var rule = this.parentNode.parentNode.parentNode.rule;
-        rule.patternType = $("option:selected", this).val();
-        anyValueModified = true;
-    });
-
-    if (rule) {
-        row[0].rule = rule;
-        $(".ruleName", row).text(rule.name);
-        $(".urlPattern", row).text(rule.urlPattern);
-    } else {
-        var ruleName = $("#proxyProfiles .templateRow td:first").text(); // template name
-        row[0].rule = {
-            name:ruleName,
-            urlPattern:"",
-            patternType:RuleManager.PatternTypes.wildcard,
-            profileId:ProfileManager.directConnectionProfile.id
-        };
-    }
-    if (activate) {
-        $("td:first", row).click();
-        $("td:first input", row).select();
-    }
-}
-
-function deleteRuleRow() {
-    var row = event.target.parentNode.parentNode;
-    if (switchRulesEnabled
-        && (!Settings.getValue("confirmDeletion", true)
-        || InfoTip.confirmI18n("message_deleteSelectedRule", row.children[0].innerText))) {
-        $(row).remove();
-        saveOptions();
-        loadOptions();
-        extension.setIconInfo();
-        InfoTip.showMessageI18n("message_ruleDeleted", InfoTip.types.info);
-    }
-}
-
 function saveFileAs(fileName, fileData) {
     try {
         var bb = null;
@@ -909,22 +625,10 @@ function saveFileAs(fileName, fileData) {
     }
 }
 
-function exportPacFile() {
-    var script = RuleManager.generateAutoPacScript();
-
-    saveFileAs("SwitchyPac.pac", script);
-}
-
-function exportRuleList() {
-    var ruleListData = RuleManager.generateRuleList();
-
-    saveFileAs("SwitchyRules.ssrl", ruleListData);
-}
-
 function makeBackup() {
     var options = {};
     for (var optionName in localStorage) {
-        if (localStorage.hasOwnProperty(optionName) && optionName != "ruleListRules") {
+        if (localStorage.hasOwnProperty(optionName)) {
             options[optionName] = localStorage[optionName];
         }
     }
@@ -1042,9 +746,6 @@ function checkPageParams() {
     if (params["firstTime"] == "true")
         InfoTip.showMessageI18n("message_firstTimeWelcome", InfoTip.types.note, -1);
 
-    if (params["rulesFirstTime"] == "true")
-        InfoTip.showMessageI18n("message_rulesFirstTimeWelcome", InfoTip.types.note, -1);
-
     switchTab(params["tab"]);
 }
 
@@ -1102,14 +803,6 @@ $(document).ready(function(){
     $("#importPACButton").click(function(){
         $("#pfile").click();
     });
-    $("div.delete.rule").click(deleteRuleRow);
-    $("#apply2All").click(apply2All);
-    $("#btnNewRule").click(function(){
-        newRuleRow(undefined, true);
-    });
-    $("#updateListNow").click(updateListNow);
-    $("#exportPacFile").click(exportPacFile);
-    $("#exportRuleList").click(exportRuleList);
     $("#makeBackup").click(makeBackup);
     $("#restoreBackup").click(restoreBackup);
     $("#resetOptions").click(resetOptions);

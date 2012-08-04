@@ -23,7 +23,6 @@ var ProfileManager = {};
 ProfileManager.ProxyModes = {
     direct:"direct",
     manual:"manual",
-    auto:"auto",
     system:"system"
 };
 
@@ -41,15 +40,6 @@ ProfileManager.systemProxyProfile = {
     name:"[" + I18n.getMessage("proxy_systemProxy") + "]",
     proxyMode:ProfileManager.ProxyModes.system,
     color:"inactive"
-};
-
-ProfileManager.autoSwitchProfile = {
-    id:"auto",
-    name:"[" + I18n.getMessage("proxy_autoSwitch") + "]",
-    proxyMode:ProfileManager.ProxyModes.auto,
-    color:"auto-blue",
-    isAutomaticModeProfile:true,
-    proxyConfigUrl:":memory:"
 };
 
 ProfileManager.currentProfileName = "<Current Profile>";
@@ -125,8 +115,6 @@ ProfileManager.getProfile = function getProfile(profileId) {
         profile = ProfileManager.directConnectionProfile;
     else if (profileId == ProfileManager.systemProxyProfile.id)
         profile = ProfileManager.systemProxyProfile;
-    else if (profileId == ProfileManager.autoSwitchProfile.id)
-        profile = ProfileManager.autoSwitchProfile;
     else
         profile = ProfileManager.profiles[profileId];
 
@@ -165,8 +153,6 @@ ProfileManager.getCurrentProfile = function getCurrentProfile() {
         return ProfileManager.directConnectionProfile;
     if (proxyMode == ProfileManager.ProxyModes.system)
         return ProfileManager.systemProxyProfile;
-    if (proxyMode == ProfileManager.ProxyModes.auto && ProxyPlugin.proxyConfigUrl == ProxyPlugin.memoryPath)
-        return ProfileManager.autoSwitchProfile;
 
     var profile = ProfileManager.parseProxyString(proxyString);
     profile.proxyMode = proxyMode;
@@ -184,16 +170,9 @@ ProfileManager.getCurrentProfile = function getCurrentProfile() {
     return profile;
 };
 
-ProfileManager.applyProfile = function applyProfile(profile, callback) {
+ProfileManager.applyProfile = function applyProfile(profile) {
     Settings.setObject("selectedProfile", profile);
 
-    if (profile.id == "auto") {
-        profile = RuleManager.getAutomaticModeProfile();
-    }
-    if (profile.isAutomaticModeProfile) {
-        RuleManager.saveAutoPacScript();
-        profile.proxyConfigUrl = ProxyPlugin.autoPacScriptPath;
-    }
     var proxyString = ProfileManager.buildProxyString(profile);
 
     try {
@@ -330,10 +309,7 @@ ProfileManager.fixProfile = function fixProfile(profile) {
         delete profile.configUrl;
     }
     if (profile.proxyMode == undefined) {
-        if (profile.proxyConfigUrl != undefined && profile.proxyConfigUrl.trim().length > 0)
-            profile.proxyMode = ProfileManager.ProxyModes.auto;
-        else
-            profile.proxyMode = ProfileManager.ProxyModes.manual;
+        profile.proxyMode = ProfileManager.ProxyModes.manual;
     }
 
     return profile;
@@ -368,9 +344,6 @@ ProfileManager.equals = function equals(profile1, profile2) {
             && profile1.proxySocks == profile2.proxySocks
             /*&& profile1.socksVersion == profile2.socksVersion*/);
     }
-
-    if (profile1.proxyMode == ProfileManager.ProxyModes.auto)
-        return (profile1.proxyConfigUrl == profile2.proxyConfigUrl);
 };
 
 /**

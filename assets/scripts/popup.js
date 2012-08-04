@@ -20,31 +20,21 @@
  */
 var extension;
 
-var activeTabDomain = null;
-
-var autoEnabled = false;
-
 function init() {
     extension = chrome.extension.getBackgroundPage();
     App = extension.App;
     ProfileManager = extension.ProfileManager;
-    RuleManager = extension.RuleManager;
     Settings = extension.Settings;
     Utils = extension.Utils;
     I18n = extension.I18n;
-    autoEnabled = RuleManager.isEnabled();
     I18n.process(document);
     document.body.style.visibility = "visible";
 
     buildMenuItems();
     initUI();
 }
-function showTempRule() {
-    $("#divDomain").remove();
-    $("#menuAddTempRule").show();
-}
 function initUI() {
-    $("#about, #addRule .close").click(closePopup);
+    $("#about").click(closePopup);
 
     $(".versionNumber").text(App.version);
 
@@ -90,9 +80,6 @@ function quickSwitchProxy() {
     }
     else if (profileId == ProfileManager.systemProxyProfile.id) {
         profile = ProfileManager.systemProxyProfile;
-    }
-    else if (profileId == ProfileManager.autoSwitchProfile.id) {
-        profile = ProfileManager.autoSwitchProfile;
     }
     else {
         profile = ProfileManager.getProfile(profileId);
@@ -160,122 +147,16 @@ function showAbout() {
     $("#about").css("visibility", "visible");					// ....
 }
 
-function showAddRule() {
-    var lastProfileId = Settings.getValue("quickRuleProfileId", -1);
-    var lastPatternType = Settings.getValue("quickRulePatternType", RuleManager.PatternTypes.wildcard);
-    if (lastPatternType == "regex") // backward compatibility
-        lastPatternType = RuleManager.PatternTypes.regexp;
-
-    var combobox = $("#cmbProfileId");
-    var profiles = ProfileManager.getSortedProfileArray();
-    var directProfile = ProfileManager.directConnectionProfile;
-
-    var item = $("<option>").attr("value", directProfile.id).text(directProfile.name);
-    item[0].profile = directProfile;
-    combobox.append(item);
-
-    $.each(profiles, function (key, profile) {
-        var item = $("<option>").attr("value", profile.id).text(profile.name);
-        item[0].profile = profile;
-        if (lastProfileId == profile.id)
-            item.attr("selected", "selected");
-        combobox.append(item);
-    });
-
-    $("#cmbPatternType option[value='" + lastPatternType + "']").attr("selected", "selected");
-    $("#txtUrlPattern, #cmbPatternType").change(function () {
-        var patternField = $("#txtUrlPattern");
-        var patternTypeField = $("#cmbPatternType option:selected");
-        if (this.id == "cmbPatternType") {
-            var previousPatternType;
-            if (patternTypeField.val() == RuleManager.PatternTypes.regexp)
-                previousPatternType = RuleManager.PatternTypes.wildcard;
-            else
-                previousPatternType = RuleManager.PatternTypes.regexp;
-
-            if (patternField.val() == RuleManager.domainToRule(activeTabDomain, previousPatternType).urlPattern)
-                patternField.val(RuleManager.domainToRule(activeTabDomain, patternTypeField.val()).urlPattern);
-        }
-
-        if (RuleManager.ruleExists(patternField.val(), patternTypeField.val())) {
-            $("#addRule .note").show();
-            patternField.addClass("invalid");
-        } else {
-            $("#addRule .note").hide();
-            patternField.removeClass("invalid");
-        }
-
-    }).keyup(function () {
-            $(this).change();
-        });
-
-    var rule = RuleManager.domainToRule(activeTabDomain, $("#cmbPatternType option:selected").val());
-    $("#addRule")[0].rule = rule;
-    $("#txtUrlPattern").val(rule.urlPattern).change();
-    $("#txtRuleName").val(rule.name);
-    $("#txtRuleName").focus().select();
-
-    var currentBodyDirection = document.body.style.direction;	// ....workaround for a Chrome bug
-    document.body.style.direction = "ltr";						// ....prevents resizing the popup
-    $("#addRule").css("visibility", "hidden");					// ....
-
-    $("#menu").hide();
-    $("#addRule").show();
-    $(document.body).height($("#addRule").height());
-    $(window).height($("#addRule").height());
-
-    document.body.style.direction = currentBodyDirection;		// ....if the body's direction is "rtl"
-    $("#addRule").css("visibility", "visible");					// ....
-}
-
-function addSwitchRule() {
-    closePopup();
-    var rule = $("#addRule")[0].rule;
-    rule.name = $("#txtRuleName").val();
-    rule.urlPattern = $("#txtUrlPattern").val();
-    rule.patternType = $("#cmbPatternType option:selected").val();
-    rule.profileId = $("#cmbProfileId option:selected")[0].profile.id;
-    RuleManager.addRule(rule);
-
-    // notify 'Options' tabs
-    try {
-        var tabs = chrome.extension.getExtensionTabs();
-        for (var i in tabs) {
-            if (tabs.hasOwnProperty(i)) {
-                var tab = tabs[i];
-                if (tab.location.pathname == "/options.html") {
-                    tab.loadOptions();
-                }
-            }
-        }
-    } catch (e) {
-    }
-
-    Settings.setValue("quickRuleProfileId", rule.profileId);
-    Settings.setValue("quickRulePatternType", rule.patternType);
-
-    refreshTab();
-}
-
 function clearMenuProxyItems() {
     $("#proxies .item").remove();
 }
 
-var addTempRule = function addTempRule() {
-    var combobox = $("#cmbTempProfileId");
-    closePopup();
-    RuleManager.addTempRule(activeTabDomain, combobox.val());
-    refreshTab();
-};
-
 function buildMenuProxyItems(currentProfile) {
     var profiles = ProfileManager.getSortedProfileArray();
-    var pp = RuleManager.LastProfile;
     var menu = $("#proxies");
     var templateItem = $("#proxies .templateItem");
     var combobox = $("#cmbTempProfileId");
     var item;
-    combobox.change(addTempRule);
     for (var i in profiles) {
         if (profiles.hasOwnProperty(i)) {
             var profile = profiles[i];
@@ -292,14 +173,6 @@ function buildMenuProxyItems(currentProfile) {
                 item.addClass("checked");
 
             menu.append(item);
-
-            if (autoEnabled && pp) {
-                item = $("<option>").attr("value", profile.id).text(profile.name);
-                item[0].profile = profile;
-                if (pp.id == profile.id)
-                    item.attr("selected", "selected");
-                combobox.append(item);
-            }
         }
     }
 
@@ -330,11 +203,6 @@ function buildMenuDirectConnectionItem(currentProfile) {
     item[0].profile = profile;
     if (currentProfile.proxyMode == ProfileManager.ProxyModes.direct)
         item.addClass("checked");
-    else if (autoEnabled) {
-        item = $("<option>").attr("value", profile.id).text(profile.name);
-        item[0].profile = profile;
-        $("#cmbTempProfileId").append(item);
-    }
 }
 
 function buildMenuSystemProxyItem(currentProfile) {
@@ -345,33 +213,11 @@ function buildMenuSystemProxyItem(currentProfile) {
         item.addClass("checked");
 }
 
-function buildMenuAutomaticModeItem(currentProfile) {
-    var item = $("#automaticMode");
-    if (autoEnabled && (activeTabDomain = RuleManager.LastDomain)) {
-        $("#spanDomain").text(activeTabDomain);
-    }
-    else {
-        $("#menuAddRule, #divDomain").hide();
-        if (!autoEnabled) {
-            item.hide();
-            return;
-        }
-    }
-    var autoProfile = RuleManager.getAutomaticModeProfile();
-    item.click(onSelectProxyItem);
-    item[0].profile = autoProfile;
-    if (RuleManager.isAutomaticModeEnabled(currentProfile)) {
-        item.addClass("checked");
-        delete currentProfile.unknown; // to prevent adding <current profile> item.
-    }
-}
-
 function buildMenuItems() {
     var currentProfile = ProfileManager.getCurrentProfile();
     clearMenuProxyItems();
     buildMenuDirectConnectionItem(currentProfile);
     buildMenuSystemProxyItem(currentProfile);
-    buildMenuAutomaticModeItem(currentProfile);
     buildMenuProxyItems(currentProfile);
 }
 
@@ -390,31 +236,16 @@ function onSelectProxyItem() {
     $("#menu .item").removeClass("checked");
     item.addClass("checked");
 
-    if (profile.isAutomaticModeProfile)
-        checkRulesFirstTimeUse();
     refreshTab();
-}
-
-function checkRulesFirstTimeUse() {
-    if (!Settings.keyExists("rulesFirstTime")) {
-        Settings.setValue("rulesFirstTime", ";]");
-        if (!RuleManager.hasRules()) {
-            var url = "options.html?rulesFirstTime=true&tab=rules";
-            chrome.tabs.create({ url:url });
-        }
-    }
 }
 
 $(document).ready(function(){
     init();
     quickSwitchProxy();
-    $("#menuAddRule").click(showAddRule);
-    $("#divDomain").click(showTempRule);
     $("#menuOptions").click(openOptions);
     $("#menuAbout").click(showAbout);
     $("#openMainWebsite").click(openMainWebsite);
     $("#openPlusWebsite").click(openPlusWebsite);
     $("#openSupportWebsite").click(openSupportWebsite);
-    $("#btnSave").click(addSwitchRule);
     $("#btnCancel").click(closePopup);
 });
