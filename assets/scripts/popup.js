@@ -25,7 +25,6 @@ function init() {
     App = extension.App;
     ProfileManager = extension.ProfileManager;
     Settings = extension.Settings;
-    Utils = extension.Utils;
     I18n = extension.I18n;
     I18n.process(document);
     document.body.style.visibility = "visible";
@@ -155,7 +154,6 @@ function buildMenuProxyItems(currentProfile) {
     var profiles = ProfileManager.getSortedProfileArray();
     var menu = $("#proxies");
     var templateItem = $("#proxies .templateItem");
-    var combobox = $("#cmbTempProfileId");
     var item;
     for (var i in profiles) {
         if (profiles.hasOwnProperty(i)) {
@@ -199,7 +197,7 @@ function buildMenuProxyItems(currentProfile) {
 function buildMenuDirectConnectionItem(currentProfile) {
     var item = $("#directConnection");
     item.click(onSelectProxyItem);
-    item[0].profile = ProfileManager.directConnectionProfile;;
+    item[0].profile = ProfileManager.directConnectionProfile;
     if (currentProfile.proxyMode == ProfileManager.ProxyModes.direct)
         item.addClass("checked");
 }
