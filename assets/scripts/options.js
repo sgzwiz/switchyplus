@@ -67,20 +67,14 @@ function initUI() {
         selectedRow[0].profile.name = $(this).val();
         onFieldModified(true);
     });
-    $("#modeManual, #modeAuto").change(function () {
+    $("#modeManual").change(function () {
         if ($("#modeManual").is(":checked")) {
             selectedRow[0].profile.proxyMode = ProfileManager.ProxyModes.manual;
             $("#httpRow, #sameProxyRow, #httpsRow, #ftpRow, #socksRow, #socksVersionRow").removeClass("disabled");
             $("#httpRow input, #sameProxyRow input, #httpsRow input, #ftpRow input, #socksRow input, #socksVersionRow input").removeAttr("disabled");
-            $("#configUrlRow, #importPACButton").addClass("disabled");
-            $("#configUrlRow input, #importPACButton").attr("disabled", "disabled");
+            $("#configUrlRow").addClass("disabled");
+            $("#configUrlRow input").attr("disabled", "disabled");
             $("#useSameProxy").change();
-        } else {
-            selectedRow[0].profile.proxyMode = ProfileManager.ProxyModes.auto;
-            $("#httpRow, #sameProxyRow, #httpsRow, #ftpRow, #socksRow, #socksVersionRow").addClass("disabled");
-            $("#httpRow input, #sameProxyRow input, #httpsRow input, #ftpRow input, #socksRow input, #socksVersionRow input").attr("disabled", "disabled");
-            $("#configUrlRow, #importPACButton").removeClass("disabled");
-            $("#configUrlRow input, #importPACButton").removeAttr("disabled");
         }
         onFieldModified(true);
     });
@@ -308,15 +302,6 @@ function loadOptions() {
     anyValueModified = false;
 }
 
-function updateListNow() {
-    if (anyValueModified)
-        if (InfoTip.confirmI18n("message_saveOptions"))
-            saveOptions();
-        else
-            return;
-    $("#updatingListIcon").css("visibility", "visible");
-
-}
 function saveOptions() {
     // Proxy Profiles
     var currentProfile = ProfileManager.getCurrentProfile();
@@ -339,9 +324,6 @@ function saveOptions() {
             && profile.proxyHttps == profile.proxyFtp
             && profile.proxyFtp == profile.proxySocks)
             profile.useSameProxy = true;
-
-        if (profile.proxyMode == ProfileManager.ProxyModes.auto && profile.proxyConfigUrl.length == 0)
-            profile.proxyMode = ProfileManager.ProxyModes.manual;
 
         if (!profile.id || profile.id.length == 0 || profile.id == "unknown") {
             generateProfileId(oldProfiles, profile);
@@ -594,22 +576,6 @@ function onSelectRow(e) {
     ignoreFieldsChanges = false;
 }
 
-function enterFieldEditMode(cell) {
-    var input = $("input", cell);
-    var span = $("span", cell);
-    if (input.is(":visible"))
-        return;
-    var v = span.text();
-    if (v == "-")
-        input.val("");
-    else
-        input.val(span.text());
-    input.toggle();
-    span.toggle();
-    input.focus();
-//	input.select();
-}
-
 function saveFileAs(fileName, fileData) {
     try {
         var bb = null;
@@ -790,17 +756,17 @@ function fixProxyString(proxy, defaultPort) {
     defaultPort = defaultPort || "80";
     return proxy + ":" + defaultPort;
 }
-$(document).ready(function(){
+$(document).ready(function () {
     init();
     $("div.color").click(changeColor);
     $("div.delete.row").click(deleteRow);
     $("#btn-new").click(newRow);
     $("#rfile").change(restoreLocal);
-    $("#RestoreFileButton").click(function(){
+    $("#RestoreFileButton").click(function () {
         $("#rfile").click();
     });
     $("#pfile").change(importPAC);
-    $("#importPACButton").click(function(){
+    $("#importPACButton").click(function () {
         $("#pfile").click();
     });
     $("#makeBackup").click(makeBackup);

@@ -175,15 +175,11 @@ ProfileManager.applyProfile = function applyProfile(profile) {
 
     var proxyString = ProfileManager.buildProxyString(profile);
 
-    try {
-        var result = ProxyPlugin.setProxy(profile.proxyMode, proxyString, profile.proxyExceptions, profile.proxyConfigUrl);
+    var result = ProxyPlugin.setProxy(profile.proxyMode, proxyString, profile.proxyExceptions, profile.proxyConfigUrl);
 
-        if (result != 0 || result != "0")
-            throw "Error Code (" + result + ")";
-
-    } catch (ex) {
+    if (result != 0 || result != "0") {
         Logger.log("Plugin Error @ProfileManager.applyProfile(" + ProfileManager.profileToString(profile, false) + ") > " +
-            ex.toString(), Logger.Types.error);
+            "Error Code (" + result + ")", Logger.Types.error);
     }
 };
 

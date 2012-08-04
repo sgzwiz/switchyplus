@@ -28,14 +28,8 @@ ProxyPlugin.proxyConfigUrl = Settings.getValue('proxyConfigUrl', '');
 ProxyPlugin.autoPacScriptPath = Settings.getValue('autoPacScriptPath', '');
 ProxyPlugin.mute = false;
 ProxyPlugin.init = function () {
-    if (chrome.experimental !== undefined && chrome.experimental.proxy !== undefined)
-        ProxyPlugin._proxy = chrome.experimental.proxy;
-    else if (chrome.proxy !== undefined)
-        ProxyPlugin._proxy = chrome.proxy;
-    else
-        alert('Need proxy api support, please update your Chrome');
-    ProxyPlugin._proxy.settings.onChange.addListener(ProxyPlugin.updateProxy);
-    ProxyPlugin._proxy.settings.get({}, ProxyPlugin.updateProxy);
+    chrome.proxy.settings.onChange.addListener(ProxyPlugin.updateProxy);
+    chrome.proxy.settings.get({}, ProxyPlugin.updateProxy);
 };
 
 ProxyPlugin.updateProxy = function (config) {
@@ -247,7 +241,7 @@ ProxyPlugin.setProxy = function (proxyMode, proxyString, proxyExceptions, proxyC
             break;
     }
     ProxyPlugin.mute = true;
-    ProxyPlugin._proxy.settings.set({'value':config}, function () {
+    chrome.proxy.settings.set({'value':config}, function () {
         ProxyPlugin.mute = false;
         if (ProxyPlugin.setProxyCallback != undefined) {
             ProxyPlugin.setProxyCallback();

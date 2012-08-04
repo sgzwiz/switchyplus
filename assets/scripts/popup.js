@@ -199,8 +199,7 @@ function buildMenuProxyItems(currentProfile) {
 function buildMenuDirectConnectionItem(currentProfile) {
     var item = $("#directConnection");
     item.click(onSelectProxyItem);
-    var profile = ProfileManager.directConnectionProfile;
-    item[0].profile = profile;
+    item[0].profile = ProfileManager.directConnectionProfile;;
     if (currentProfile.proxyMode == ProfileManager.ProxyModes.direct)
         item.addClass("checked");
 }
@@ -239,7 +238,7 @@ function onSelectProxyItem() {
     refreshTab();
 }
 
-$(document).ready(function(){
+$(document).ready(function () {
     init();
     quickSwitchProxy();
     $("#menuOptions").click(openOptions);

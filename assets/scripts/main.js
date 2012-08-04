@@ -132,6 +132,6 @@ function setIconInfo(profile, preventProxyChanges) {
     setIconTitle(title);
 }
 
-$(document).ready(function(){
+$(document).ready(function () {
     init();
 });
