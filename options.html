@@ -114,7 +114,7 @@ This work is based on:
             <td>
                 <table id="profileDetails">
                     <tr class="indent">
-                        <td><label><b data-i18n-content="options_profileName">Profile Name</b></label></td>
+                        <td><label for="profileName"><b data-i18n-content="options_profileName">Profile Name</b></label></td>
                         <td colspan="3"><input id="profileName" type="text"/></td>
                     </tr>
                     <tr>
@@ -131,9 +131,9 @@ This work is based on:
                         </td>
                     </tr>
                     <tr id="httpRow" class="indent">
-                        <td><label data-i18n-content="options_httpProxy">HTTP Proxy</label></td>
+                        <td><label for="httpProxyHost" data-i18n-content="options_httpProxy">HTTP Proxy</label></td>
                         <td><input id="httpProxyHost" type="text" class="ltr"/></td>
-                        <td><label data-i18n-content="options_proxyPort">Port</label></td>
+                        <td><label for="httpProxyPort" data-i18n-content="options_proxyPort">Port</label></td>
                         <td><input id="httpProxyPort" type="text" class="ltr"/></td>
                     </tr>
                     <tr id="sameProxyRow" class="indent">
@@ -146,21 +146,21 @@ This work is based on:
                         </td>
                     </tr>
                     <tr id="httpsRow" class="indent">
-                        <td><label data-i18n-content="options_httpsProxy">HTTPS Proxy</label></td>
+                        <td><label for="httpsProxyHost" data-i18n-content="options_httpsProxy">HTTPS Proxy</label></td>
                         <td><input id="httpsProxyHost" type="text" class="ltr"/></td>
-                        <td><label data-i18n-content="options_proxyPort">Port</label></td>
+                        <td><label for="httpsProxyPort" data-i18n-content="options_proxyPort">Port</label></td>
                         <td><input id="httpsProxyPort" type="text" class="ltr"/></td>
                     </tr>
                     <tr id="ftpRow" class="indent">
-                        <td><label data-i18n-content="options_ftpProxy">FTP Proxy</label></td>
+                        <td><label for="ftpProxyHost" data-i18n-content="options_ftpProxy">FTP Proxy</label></td>
                         <td><input id="ftpProxyHost" type="text" class="ltr"/></td>
-                        <td><label data-i18n-content="options_proxyPort">Port</label></td>
+                        <td><label for="ftpProxyPort" data-i18n-content="options_proxyPort">Port</label></td>
                         <td><input id="ftpProxyPort" type="text" class="ltr"/></td>
                     </tr>
                     <tr id="socksRow" class="indent">
-                        <td><label data-i18n-content="options_socksHost">SOCKS Host</label></td>
+                        <td><label for="socksProxyHost" data-i18n-content="options_socksHost">SOCKS Host</label></td>
                         <td><input id="socksProxyHost" type="text" class="ltr"/></td>
-                        <td><label data-i18n-content="options_proxyPort">Port</label></td>
+                        <td><label for="socksProxyPort" data-i18n-content="options_proxyPort">Port</label></td>
                         <td><input id="socksProxyPort" type="text" class="ltr"/></td>
                     </tr>
                     <tr id="socksVersionRow" class="indent">
@@ -194,7 +194,7 @@ This work is based on:
                         </td>
                     </tr>
                     <tr id="configUrlRow" class="indent">
-                        <td><label data-i18n-content="options_autoConfigUrl">Auto Config URL</label></td>
+                        <td><label for="proxyConfigUrl" data-i18n-content="options_autoConfigUrl">Auto Config URL</label></td>
                         <td colspan="3"><input id="proxyConfigUrl" type="text" class="ltr"/></td>
                     </tr>
                     <tr class="indent">
@@ -212,8 +212,8 @@ This work is based on:
                     </tr>
                     <tr class="indent">
                         <td>
-                            <label><b data-i18n-content="options_noProxyFor">No Proxy for</b></label>
-                            <span data-help="noProxyFor"/>
+                            <label for="proxyExceptions"><b data-i18n-content="options_noProxyFor">No Proxy for</b></label>
+                            <span data-help="noProxyFor"></span>
                         </td>
                         <td colspan="3"><input id="proxyExceptions" type="text" class="ltr"/></td>
                     </tr>
@@ -228,7 +228,7 @@ This work is based on:
         <label>
 								<span class="title"><input id="chkMonitorProxyChanges" type="checkbox"/> 
 									<span data-i18n-content="options_monitorProxyChanges">Monitor Proxy Changes</span>
-									<span data-help="monitorProxyChanges"/>
+									<span data-help="monitorProxyChanges"></span>
 								</span>
         </label>
     </p>
@@ -237,7 +237,7 @@ This work is based on:
         <label>
 								<span class="indent"><input id="chkPreventProxyChanges" type="checkbox"/> 
 									<span data-i18n-content="options_revertProxyChanges">Revert proxy changes done by other apps.</span>
-									<span data-help="revertProxyChanges"/>
+									<span data-help="revertProxyChanges"></span>
 
 								</span>
         </label>
@@ -274,7 +274,7 @@ This work is based on:
                 </button>
             </td>
             <td>
-                <input type="text" id="txtBackupFilePath" class="initial ltr"
+                <label for="txtBackupFilePath"></label><input type="text" id="txtBackupFilePath" class="initial ltr"
                        value="Backup file URL (e.g. 'http://example.com/switchy.bak')"
                        data-i18n-values="value:options_restoreBackup_help"/>
             </td>
@@ -286,7 +286,7 @@ This work is based on:
     <label>
 							<span class="title"><input id="chkQuickSwitch" type="checkbox"/> 
 								<span data-i18n-content="options_quickSwitch">Quick Switch</span>
-								<span data-help="quickSwitch"/>
+								<span data-help="quickSwitch"></span>
 							</span>
     </label>
 
@@ -307,10 +307,10 @@ This work is based on:
 
     <div class="title">
         <span data-i18n-content="options_startupProfile">Startup Profile:</span>
-        <span data-help="startupProfile"/>
+        <span data-help="startupProfile"></span>
     </div>
     <p>
-        <select id="cmbStartupProfile"></select>
+        <label for="cmbStartupProfile"></label><select id="cmbStartupProfile"></select>
     </p>
 
     <hr/>
@@ -320,7 +320,7 @@ This work is based on:
         <label>
 								<span class="indent"><input id="chkConfirmDeletion" type="checkbox"/> 
 									<span data-i18n-content="options_confirmDeletion">Confirm profile/rule deletion.</span>
-									<span data-help="confirmDeletion"/>
+									<span data-help="confirmDeletion"></span>
 								</span>
         </label>
     </p>
@@ -329,7 +329,7 @@ This work is based on:
         <label>
 								<span class="indent"><input id="chkRefreshTab" type="checkbox"/> 
 									<span data-i18n-content="options_RefreshTab">Refresh current tab on profile change</span>
-									<span data-help="refreshTab"/>
+									<span data-help="refreshTab"></span>
 								</span>
         </label>
     </p>
@@ -340,18 +340,18 @@ This work is based on:
     <table>
         <tr>
             <td style="width:100%">
-                <button class="button" id="btnResetOptions" id="resetOptions"
+                <button class="button" id="resetOptions"
                         data-i18n-content="options_resetOptions">Reset Options
                 </button>
             </td>
             <td>
-                <button class="button bold" id="btnSave" id="saveOptions" data-i18n-content="options_save">
+                <button class="button bold" id="saveOptions" data-i18n-content="options_save">
                     Save
                 </button>
             </td>
             <td></td>
             <td>
-                <button class="button" id="btnClose" id="closeWindow" data-i18n-content="options_close">Close
+                <button class="button" id="closeWindow" data-i18n-content="options_close">Close
                 </button>
             </td>
         </tr>
